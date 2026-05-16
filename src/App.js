@@ -16,30 +16,28 @@ const NAV_ITEMS = [
 
 const STATUS_OPTIONS = ['OFFEN', 'IN_BEARBEITUNG', 'ABGESCHLOSSEN'];
 
+const SORT_OPTIONS = [
+  { value: 'date-desc', label: 'Datum (neueste)' },
+  { value: 'date-asc', label: 'Datum (älteste)' },
+  { value: 'title-asc', label: 'Titel (A-Z)' },
+  { value: 'title-desc', label: 'Titel (Z-A)' },
+];
+
+const FILTER_OPTIONS = [
+  { value: 'all', label: 'Alle' },
+  { value: 'analyzed', label: 'Analysiert' },
+  { value: 'open', label: 'Offen' },
+  { value: 'draft', label: 'Entwurf' },
+];
+
 const ONBOARDING_STEPS = [
-  {
-    title: 'Willkommen bei MeetingMind',
-    desc: 'Das KI-gestützte Tool für professionelle Meeting-Protokolle. Erstelle, verwalte und analysiere deine Meetings mit Google Gemini AI.',
-    hint: 'Schritt 1 von 3',
-  },
-  {
-    title: 'Meetings erstellen & verwalten',
-    desc: 'Lege neue Meetings an, erfasse den Protokolltext und behalte den Überblick über alle vergangenen Besprechungen in einer strukturierten Liste.',
-    hint: 'Schritt 2 von 3',
-  },
-  {
-    title: 'KI-Analyse starten',
-    desc: 'Mit einem Klick analysiert Google Gemini dein Protokoll und erstellt automatisch eine Zusammenfassung sowie eine Liste erkannter Aufgaben.',
-    hint: 'Schritt 3 von 3',
-  },
+  { title: 'Willkommen bei MeetingMind', desc: 'Das KI-gestützte Tool für professionelle Meeting-Protokolle. Erstelle, verwalte und analysiere deine Meetings mit Google Gemini AI.', hint: 'Schritt 1 von 3' },
+  { title: 'Meetings erstellen & verwalten', desc: 'Lege neue Meetings an, erfasse den Protokolltext und behalte den Überblick über alle vergangenen Besprechungen in einer strukturierten Liste.', hint: 'Schritt 2 von 3' },
+  { title: 'KI-Analyse starten', desc: 'Mit einem Klick analysiert Google Gemini dein Protokoll und erstellt automatisch eine Zusammenfassung sowie eine Liste erkannter Aufgaben.', hint: 'Schritt 3 von 3' },
 ];
 
 function Icon({ path, size = 18, color = 'currentColor' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-      <path d={path} />
-    </svg>
-  );
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill={color}><path d={path} /></svg>;
 }
 
 function Toast({ message, type, onClose }) {
@@ -77,6 +75,36 @@ function groupMeetingsByDate(meetings) {
   return groups;
 }
 
+function applyFilterAndSort(meetings, search, filter, sort) {
+  let result = [...meetings];
+
+  // Erweiterte Suche: Titel UND Protokolltext
+  if (search) {
+    const q = search.toLowerCase();
+    result = result.filter(m =>
+      m.title.toLowerCase().includes(q) ||
+      (m.protocolText && m.protocolText.toLowerCase().includes(q)) ||
+      (m.location && m.location.toLowerCase().includes(q))
+    );
+  }
+
+  // Filter nach Status
+  if (filter === 'analyzed') result = result.filter(m => m.aiSummary);
+  if (filter === 'open') result = result.filter(m => m.protocolText && !m.aiSummary);
+  if (filter === 'draft') result = result.filter(m => !m.protocolText);
+
+  // Sortierung
+  result.sort((a, b) => {
+    if (sort === 'date-desc') return new Date(b.meetingDate) - new Date(a.meetingDate);
+    if (sort === 'date-asc') return new Date(a.meetingDate) - new Date(b.meetingDate);
+    if (sort === 'title-asc') return a.title.localeCompare(b.title);
+    if (sort === 'title-desc') return b.title.localeCompare(a.title);
+    return 0;
+  });
+
+  return result;
+}
+
 async function exportToPDF(meeting) {
   const element = document.getElementById('export-content');
   element.classList.add('exporting');
@@ -94,7 +122,6 @@ function OnboardingScreen({ onFinish }) {
   const [step, setStep] = useState(0);
   const current = ONBOARDING_STEPS[step];
   const isLast = step === ONBOARDING_STEPS.length - 1;
-
   return (
     <div className="onboarding-overlay">
       <div className="onboarding-card">
@@ -110,11 +137,7 @@ function OnboardingScreen({ onFinish }) {
           ))}
         </div>
         <div className="onboarding-actions">
-          {step > 0 && (
-            <button className="btn-onboard-back" onClick={() => setStep(s => s - 1)}>
-              Zurück
-            </button>
-          )}
+          {step > 0 && <button className="btn-onboard-back" onClick={() => setStep(s => s - 1)}>Zurück</button>}
           <button className="btn-onboard-next" onClick={() => isLast ? onFinish() : setStep(s => s + 1)}>
             {isLast ? 'Loslegen' : 'Weiter'}
           </button>
@@ -163,21 +186,15 @@ function Sidebar({ activeNav, setActiveNav, onNewMeeting, darkMode, setDarkMode,
         </div>
         <nav className="sidebar-nav">
           {NAV_ITEMS.map(item => (
-            <button
-              key={item.id}
-              className={`nav-item ${activeNav === item.id ? 'active' : ''}`}
-              onClick={() => { setActiveNav(item.id); setSidebarOpen(false); }}
-            >
+            <button key={item.id} className={`nav-item ${activeNav === item.id ? 'active' : ''}`}
+              onClick={() => { setActiveNav(item.id); setSidebarOpen(false); }}>
               <Icon path={item.icon} size={17} />
               <span className="nav-label">{item.label}</span>
             </button>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <button
-            className="dark-toggle"
-            onClick={() => setDarkMode(d => !d)}
-          >
+          <button className="dark-toggle" onClick={() => setDarkMode(d => !d)}>
             <span className="dark-toggle-icon">{darkMode ? '○' : '●'}</span>
             <span className="nav-label">{darkMode ? 'Hellmodus' : 'Dunkelmodus'}</span>
           </button>
@@ -198,7 +215,6 @@ function Dashboard({ meetings }) {
   const analyzed = meetings.filter(m => m.aiSummary).length;
   const open = meetings.filter(m => m.protocolText && !m.aiSummary).length;
   const totalTasks = meetings.reduce((sum, m) => sum + (m.tasks?.length || 0), 0);
-
   return (
     <div className="detail-panel fade-in">
       <div className="detail-header">
@@ -248,32 +264,84 @@ function Dashboard({ meetings }) {
   );
 }
 
-function MeetingList({ meetings, selected, onSelect, search, setSearch, onNewMeeting }) {
-  const filtered = meetings.filter(m =>
-    m.title.toLowerCase().includes(search.toLowerCase())
-  );
+function MeetingList({ meetings, selected, onSelect, search, setSearch, onNewMeeting, filter, setFilter, sort, setSort }) {
+  const [showFilters, setShowFilters] = useState(false);
+  const filtered = applyFilterAndSort(meetings, search, filter, sort);
   const groups = groupMeetingsByDate(filtered);
+  const activeFilters = filter !== 'all' || sort !== 'date-desc';
 
   return (
     <div className="meeting-list-panel">
       <div className="list-header">
         <div className="list-header-top">
           <h2>Meetings <span className="count">{meetings.length}</span></h2>
-          <button className="icon-btn" onClick={onNewMeeting} title="Neues Meeting (N)">+</button>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              className={`icon-btn ${activeFilters ? 'filter-active' : ''}`}
+              onClick={() => setShowFilters(f => !f)}
+              title="Filter & Sortierung"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+              </svg>
+            </button>
+            <button className="icon-btn" onClick={onNewMeeting} title="Neues Meeting (N)">+</button>
+          </div>
         </div>
+
         <div className="search-bar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2">
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
           </svg>
           <input
-            placeholder="Meetings durchsuchen..."
+            placeholder="Titel, Protokoll oder Ort..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
+          {search && (
+            <button className="search-clear" onClick={() => setSearch('')}>×</button>
+          )}
         </div>
+
+        {showFilters && (
+          <div className="filter-panel">
+            <div className="filter-group">
+              <label className="filter-label">Status</label>
+              <div className="filter-chips">
+                {FILTER_OPTIONS.map(o => (
+                  <button
+                    key={o.value}
+                    className={`filter-chip ${filter === o.value ? 'active' : ''}`}
+                    onClick={() => setFilter(o.value)}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="filter-group">
+              <label className="filter-label">Sortierung</label>
+              <select className="sort-select" value={sort} onChange={e => setSort(e.target.value)}>
+                {SORT_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            {activeFilters && (
+              <button className="filter-reset" onClick={() => { setFilter('all'); setSort('date-desc'); }}>
+                Filter zurücksetzen
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
       <div className="meeting-items">
-        {filtered.length === 0 && <div className="empty-list">Keine Meetings gefunden.</div>}
+        {filtered.length === 0 && (
+          <div className="empty-list">
+            {search || filter !== 'all' ? 'Keine Meetings gefunden.' : 'Noch keine Meetings vorhanden.'}
+          </div>
+        )}
         {Object.entries(groups).map(([label, items]) =>
           items.length === 0 ? null : (
             <div key={label}>
@@ -293,9 +361,7 @@ function MeetingList({ meetings, selected, onSelect, search, setSearch, onNewMee
                     <span>{new Date(m.meetingDate).toLocaleDateString('de-DE')}</span>
                   </div>
                   {m.protocolText && (
-                    <p className="meeting-item-preview">
-                      {m.protocolText.substring(0, 65)}...
-                    </p>
+                    <p className="meeting-item-preview">{m.protocolText.substring(0, 65)}...</p>
                   )}
                 </div>
               ))}
@@ -308,10 +374,7 @@ function MeetingList({ meetings, selected, onSelect, search, setSearch, onNewMee
 }
 
 function NewMeetingForm({ onSave, onCancel }) {
-  const [form, setForm] = useState({
-    title: '', location: '', meetingDate: '', protocolText: ''
-  });
-
+  const [form, setForm] = useState({ title: '', location: '', meetingDate: '', protocolText: '' });
   return (
     <div className="detail-panel fade-in">
       <div className="detail-header">
@@ -330,26 +393,22 @@ function NewMeetingForm({ onSave, onCancel }) {
       <div className="form-grid">
         <div className="form-group">
           <label>Titel *</label>
-          <input placeholder="z.B. Sprint Planning Q3"
-            value={form.title}
+          <input placeholder="z.B. Sprint Planning Q3" value={form.title}
             onChange={e => setForm({ ...form, title: e.target.value })} />
         </div>
         <div className="form-group">
           <label>Ort</label>
-          <input placeholder="z.B. Konferenzraum A"
-            value={form.location}
+          <input placeholder="z.B. Konferenzraum A" value={form.location}
             onChange={e => setForm({ ...form, location: e.target.value })} />
         </div>
         <div className="form-group">
           <label>Datum & Uhrzeit</label>
-          <input type="datetime-local"
-            value={form.meetingDate}
+          <input type="datetime-local" value={form.meetingDate}
             onChange={e => setForm({ ...form, meetingDate: e.target.value })} />
         </div>
         <div className="form-group full-width">
           <label>Protokolltext</label>
-          <textarea rows={7}
-            placeholder="Was wurde besprochen? Wer übernimmt was?"
+          <textarea rows={7} placeholder="Was wurde besprochen? Wer übernimmt was?"
             value={form.protocolText}
             onChange={e => setForm({ ...form, protocolText: e.target.value })} />
         </div>
@@ -358,7 +417,55 @@ function NewMeetingForm({ onSave, onCancel }) {
   );
 }
 
-function MeetingDetail({ meeting, onAnalyze, onDelete, analyzing, onStatusChange, onTaskToggle }) {
+// NEU: Meeting bearbeiten Formular
+function EditMeetingForm({ meeting, onSave, onCancel }) {
+  const [form, setForm] = useState({
+    title: meeting.title || '',
+    location: meeting.location || '',
+    meetingDate: meeting.meetingDate ? meeting.meetingDate.substring(0, 16) : '',
+    protocolText: meeting.protocolText || '',
+  });
+
+  return (
+    <div className="detail-panel fade-in">
+      <div className="detail-header">
+        <div>
+          <h2>Meeting bearbeiten</h2>
+          <p className="detail-sub">Ändere die Details dieses Meetings</p>
+        </div>
+        <div className="detail-actions">
+          <button className="btn-analyze" onClick={() => {
+            if (!form.title) return alert('Bitte Titel eingeben');
+            onSave(meeting.id, form);
+          }}>Speichern</button>
+          <button className="btn-delete" onClick={onCancel}>Abbrechen</button>
+        </div>
+      </div>
+      <div className="form-grid">
+        <div className="form-group">
+          <label>Titel *</label>
+          <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label>Ort</label>
+          <input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label>Datum & Uhrzeit</label>
+          <input type="datetime-local" value={form.meetingDate}
+            onChange={e => setForm({ ...form, meetingDate: e.target.value })} />
+        </div>
+        <div className="form-group full-width">
+          <label>Protokolltext</label>
+          <textarea rows={7} value={form.protocolText}
+            onChange={e => setForm({ ...form, protocolText: e.target.value })} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MeetingDetail({ meeting, onAnalyze, onDelete, onEdit, analyzing, onStatusChange, onTaskToggle }) {
   if (!meeting) {
     return (
       <div className="detail-panel empty-detail fade-in">
@@ -384,22 +491,17 @@ function MeetingDetail({ meeting, onAnalyze, onDelete, analyzing, onStatusChange
           </p>
         </div>
         <div className="detail-actions">
-          <select
-            className="status-select"
-            value={meeting.manualStatus || 'OFFEN'}
-            onChange={e => onStatusChange(meeting.id, e.target.value)}
-          >
-            {STATUS_OPTIONS.map(s => (
-              <option key={s} value={s}>{s.replace('_', ' ')}</option>
-            ))}
+          <select className="status-select" value={meeting.manualStatus || 'OFFEN'}
+            onChange={e => onStatusChange(meeting.id, e.target.value)}>
+            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
           </select>
-          <button
-            className={`btn-analyze ${analyzing ? 'loading' : ''}`}
-            onClick={() => onAnalyze(meeting.id)}
-            disabled={analyzing}
-          >
+          <button className={`btn-analyze ${analyzing ? 'loading' : ''}`}
+            onClick={() => onAnalyze(meeting.id)} disabled={analyzing}>
             {analyzing && <span className="spinner" />}
             {analyzing ? 'Analyse läuft...' : 'KI-Analyse starten'}
+          </button>
+          <button className="btn-edit" onClick={() => onEdit(meeting)}>
+            Bearbeiten
           </button>
           <button className="btn-export" onClick={() => exportToPDF(meeting)}>
             PDF Export
@@ -446,28 +548,17 @@ function MeetingDetail({ meeting, onAnalyze, onDelete, analyzing, onStatusChange
             </h3>
             <div className="task-list">
               {meeting.tasks.map((task, i) => (
-                <div
-                  key={i}
-                  className={`task-item ${task.done ? 'task-done' : ''}`}
-                  onClick={() => onTaskToggle(meeting.id, i)}
-                >
+                <div key={i} className={`task-item ${task.done ? 'task-done' : ''}`}
+                  onClick={() => onTaskToggle(meeting.id, i)}>
                   <div className={`task-checkbox ${task.done ? 'checked' : ''}`}>
-                    {task.done && (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                      </svg>
-                    )}
+                    {task.done && <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /></svg>}
                   </div>
                   <div className="task-content">
                     <p className={`task-desc ${task.done ? 'done-text' : ''}`}>{task.description}</p>
                     <div className="task-meta">
                       {task.assignedTo && <span className="task-tag">{task.assignedTo}</span>}
-                      {task.dueDate && task.dueDate !== 'null' && (
-                        <span className="task-tag">{task.dueDate}</span>
-                      )}
-                      <span className={`task-status ${task.status?.toLowerCase()}`}>
-                        {task.status}
-                      </span>
+                      {task.dueDate && task.dueDate !== 'null' && <span className="task-tag">{task.dueDate}</span>}
+                      <span className={`task-status ${task.status?.toLowerCase()}`}>{task.status}</span>
                     </div>
                   </div>
                 </div>
@@ -489,8 +580,11 @@ export default function App() {
   const [selected, setSelected] = useState(null);
   const [activeNav, setActiveNav] = useState('dashboard');
   const [showForm, setShowForm] = useState(false);
+  const [editingMeeting, setEditingMeeting] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [sort, setSort] = useState('date-desc');
   const [toast, setToast] = useState(null);
   const [meetingStatuses, setMeetingStatuses] = useState({});
   const [darkMode, setDarkMode] = useState(false);
@@ -498,14 +592,12 @@ export default function App() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    document.body.classList.toggle('dark', darkMode);
-  }, [darkMode]);
-
+  useEffect(() => { document.body.classList.toggle('dark', darkMode); }, [darkMode]);
   useEffect(() => { loadMeetings(); }, []);
 
   const handleNewMeeting = useCallback(() => {
     setShowForm(true);
+    setEditingMeeting(null);
     setActiveNav('meetings');
     setSidebarOpen(false);
   }, []);
@@ -515,9 +607,9 @@ export default function App() {
       const tag = document.activeElement?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       if (e.key === 'n' || e.key === 'N') handleNewMeeting();
-      if (e.key === 'd' || e.key === 'D') { setActiveNav('dashboard'); setShowForm(false); setSelected(null); }
-      if (e.key === 'm' || e.key === 'M') { setActiveNav('meetings'); setShowForm(false); }
-      if (e.key === 'Escape') { setShowForm(false); setShowShortcuts(false); setSidebarOpen(false); }
+      if (e.key === 'd' || e.key === 'D') { setActiveNav('dashboard'); setShowForm(false); setEditingMeeting(null); setSelected(null); }
+      if (e.key === 'm' || e.key === 'M') { setActiveNav('meetings'); setShowForm(false); setEditingMeeting(null); }
+      if (e.key === 'Escape') { setShowForm(false); setEditingMeeting(null); setShowShortcuts(false); setSidebarOpen(false); }
       if (e.key === '?') setShowShortcuts(s => !s);
     };
     window.addEventListener('keydown', handleKey);
@@ -541,6 +633,20 @@ export default function App() {
     setActiveNav('meetings');
     loadMeetings();
     showToast('Meeting erfolgreich erstellt.');
+  };
+
+  // NEU: Meeting bearbeiten
+  const updateMeeting = async (id, form) => {
+    try {
+      await axios.put(`${API}/${id}`, form);
+      setEditingMeeting(null);
+      loadMeetings();
+      showToast('Meeting erfolgreich aktualisiert.');
+      // Ausgewähltes Meeting aktualisieren
+      setSelected(prev => prev ? { ...prev, ...form } : null);
+    } catch {
+      showToast('Fehler beim Speichern.', 'error');
+    }
   };
 
   const analyzeMeeting = async (id) => {
@@ -586,6 +692,7 @@ export default function App() {
 
   const renderMain = () => {
     if (showForm) return <NewMeetingForm key="form" onSave={createMeeting} onCancel={() => setShowForm(false)} />;
+    if (editingMeeting) return <EditMeetingForm key={`edit-${editingMeeting.id}`} meeting={editingMeeting} onSave={updateMeeting} onCancel={() => setEditingMeeting(null)} />;
     if (activeNav === 'dashboard') return <Dashboard key="dashboard" meetings={meetings} />;
     return (
       <MeetingDetail
@@ -593,6 +700,7 @@ export default function App() {
         meeting={enrichedSelected}
         onAnalyze={analyzeMeeting}
         onDelete={deleteMeeting}
+        onEdit={(m) => setEditingMeeting(m)}
         analyzing={analyzing}
         onStatusChange={handleStatusChange}
         onTaskToggle={handleTaskToggle}
@@ -603,24 +711,19 @@ export default function App() {
   return (
     <>
       {showOnboarding && (
-        <OnboardingScreen onFinish={() => {
-          localStorage.setItem('mm_onboarded', 'true');
-          setShowOnboarding(false);
-        }} />
+        <OnboardingScreen onFinish={() => { localStorage.setItem('mm_onboarded', 'true'); setShowOnboarding(false); }} />
       )}
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
       <div className="app-layout">
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
         <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
           </svg>
         </button>
-
         <Sidebar
           activeNav={activeNav}
-          setActiveNav={(nav) => { setActiveNav(nav); setShowForm(false); setSelected(null); }}
+          setActiveNav={(nav) => { setActiveNav(nav); setShowForm(false); setEditingMeeting(null); setSelected(null); }}
           onNewMeeting={handleNewMeeting}
           darkMode={darkMode}
           setDarkMode={setDarkMode}
@@ -634,17 +737,19 @@ export default function App() {
             const tasks = (m.tasks || []).map(t => ({ ...t, done: false }));
             setSelected({ ...m, tasks });
             setShowForm(false);
+            setEditingMeeting(null);
             setActiveNav('meetings');
           }}
           search={search}
           setSearch={setSearch}
+          filter={filter}
+          setFilter={setFilter}
+          sort={sort}
+          setSort={setSort}
           onNewMeeting={handleNewMeeting}
         />
         {renderMain()}
-
-        <button className="shortcuts-hint" onClick={() => setShowShortcuts(true)} title="Tastaturkürzel anzeigen">
-          ?
-        </button>
+        <button className="shortcuts-hint" onClick={() => setShowShortcuts(true)} title="Tastaturkürzel anzeigen">?</button>
       </div>
     </>
   );

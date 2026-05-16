@@ -721,3 +721,95 @@ body.dark .shortcut-row:hover { background: #1a2332; }
 body.dark .kbd { background: #1a2332; border-color: #2d3748; color: #e2e8f0; }
 body.dark .shortcuts-hint { background: #1a2332; border-color: #2d3748; color: #4a5568; }
 body.dark .mobile-menu-btn { background: #080d14; }
+/* FILTER & SORTIERUNG */
+.filter-active {
+  background: #edf4fb !important;
+  border-color: #1e6fb5 !important;
+  color: #1e6fb5 !important;
+}
+
+.filter-panel {
+  margin-top: 10px;
+  padding: 12px;
+  background: #f7f8fa;
+  border-radius: 8px;
+  border: 1px solid #ebebeb;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-group { display: flex; flex-direction: column; gap: 6px; }
+.filter-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  font-size: 12px;
+  cursor: pointer;
+  color: #555;
+  transition: all 0.15s;
+}
+.filter-chip:hover { border-color: #1e6fb5; color: #1e6fb5; }
+.filter-chip.active { background: #1e6fb5; border-color: #1e6fb5; color: white; }
+
+.sort-select {
+  padding: 7px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 7px;
+  font-size: 13px;
+  font-family: inherit;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+}
+
+.filter-reset {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+}
+.filter-reset:hover { text-decoration: underline; }
+
+/* SUCHE CLEAR BUTTON */
+.search-clear {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.search-clear:hover { color: #555; }
+
+/* BEARBEITEN BUTTON */
+.btn-edit {
+  background: transparent;
+  color: #555;
+  border: 1px solid #e0e0e0;
+  padding: 9px 16px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-edit:hover { background: #f5f5f5; border-color: #ccc; }
+
+/* DUNKELMODUS ERGÄNZUNGEN */
+body.dark .filter-panel { background: #1a2332; border-color: #1e2a3a; }
+body.dark .filter-chip { background: #0f1117; border-color: #1e2a3a; color: #cbd5e0; }
+body.dark .filter-chip:hover { border-color: #1e6fb5; color: #1e6fb5; }
+body.dark .sort-select { background: #1a2332; border-color: #1e2a3a; color: #e2e8f0; }
+body.dark .btn-edit { border-color: #1e2a3a; color: #cbd5e0; }
+body.dark .btn-edit:hover { background: #1e2a3a; }
+body.dark .filter-active { background: #1a2d4a !important; }
