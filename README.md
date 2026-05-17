@@ -1,70 +1,102 @@
-# Getting Started with Create React App
+# MeetingMind — Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES2024-F7DF1E?style=flat-square&logo=javascript)
+![CSS3](https://img.shields.io/badge/CSS3-Custom-1572B6?style=flat-square&logo=css3)
+![Axios](https://img.shields.io/badge/Axios-HTTP-5A29E4?style=flat-square)
+![jsPDF](https://img.shields.io/badge/jsPDF-Export-red?style=flat-square)
 
-## Available Scripts
+> KI-gestütztes Meeting-Management Tool mit Google Gemini AI Integration.  
+> Developed as a portfolio project for IT/AI consulting applications.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **KI-Analyse** — Google Gemini analysiert Protokolle und erkennt Aufgaben automatisch
+- **Kalender** — Monats- und Jahresansicht aller Meetings mit Tagesdetail
+- **Spracheingabe** — Diktat-Funktion für Protokolltexte via Web Speech API
+- **Mehrsprachigkeit** — Deutsch / Englisch Toggle (DE/EN)
+- **Dunkelmodus** — Vollständiges Dark Theme
+- **PDF Export** — Meeting-Protokolle als PDF exportieren
+- **Aufgaben-Übersicht** — Alle Tasks aller Meetings auf einer Seite
+- **Filter & Sortierung** — Nach Status, Datum und Titel
+- **Teilnehmer-Verwaltung** — Teilnehmer hinzufügen und verwalten
+- **LocalStorage Persistenz** — Einstellungen und Aufgaben-Status bleiben nach Reload erhalten
+- **Tastaturkürzel** — N, D, M, T, K, L, Esc, ?
+- **Responsive Design** — Mobile optimiert
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Tech Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| Technologie | Verwendung |
+|---|---|
+| React 18 | UI Framework |
+| Axios | HTTP Client für Backend-Kommunikation |
+| jsPDF + html2canvas | PDF Export |
+| Web Speech API | Spracheingabe / Diktat |
+| CSS3 Custom | Styling ohne Framework |
+| localStorage | Client-seitige Persistenz |
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Screenshots
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Dashboard
+![Dashboard](docs/dashboard.png)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Kalender
+![Kalender](docs/calendar.png)
 
-### `npm run eject`
+### Meeting Detail
+![Meeting Detail](docs/meeting-detail.png)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Setup & Installation
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Voraussetzungen
+- Node.js 18+
+- MeetingMind Backend läuft auf `http://localhost:8080`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Installation
 
-## Learn More
+```bash
+git clone https://github.com/suaybboncuksb-jpg/meetingmind-frontend.git
+cd meetingmind-frontend
+npm install
+npm start
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Die App öffnet sich unter `http://localhost:3000`.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
 
-### Code Splitting
+## Projektstruktur
+src/
+├── App.js          # Hauptkomponente mit allen Features
+├── App.css         # Komplettes Styling inkl. Dark Mode
+└── index.js        # React Entry Point
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## Verbindung zum Backend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Die App kommuniziert mit dem Spring Boot Backend über:
 
-### Making a Progressive Web App
+POST   /api/meetings           — Meeting erstellen
+GET    /api/meetings           — Alle Meetings laden
+PUT    /api/meetings/{id}      — Meeting bearbeiten
+DELETE /api/meetings/{id}      — Meeting löschen
+POST   /api/meetings/{id}/analyze — KI-Analyse starten
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Related
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- [MeetingMind Backend](https://github.com/suaybboncuksb-jpg/meetingmind) — Spring Boot + PostgreSQL + Gemini AI
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+*Portfolio Projekt · Wirtschaftsinformatik · IT/KI-Beratung*
