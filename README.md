@@ -6,7 +6,7 @@
 ![Axios](https://img.shields.io/badge/Axios-HTTP-5A29E4?style=flat-square)
 ![jsPDF](https://img.shields.io/badge/jsPDF-Export-red?style=flat-square)
 
-> KI-gestütztes Meeting-Management Tool mit Google Gemini AI Integration.  
+> KI-gestütztes Meeting-Management Tool mit Google Gemini AI Integration.
 > Developed as a portfolio project for IT/AI consulting applications.
 
 ---
@@ -41,62 +41,37 @@
 
 ---
 
-## Screenshots
-
-### Dashboard
-![Dashboard](docs/dashboard.png)
-
-### Kalender
-![Kalender](docs/calendar.png)
-
-### Meeting Detail
-![Meeting Detail](docs/meeting-detail.png)
-
----
-
 ## Setup & Installation
 
 ### Voraussetzungen
 - Node.js 18+
-- MeetingMind Backend läuft auf `http://localhost:8080`
+- MeetingMind Backend läuft auf http://localhost:8080
 
 ### Installation
 
-```bash
 git clone https://github.com/suaybboncuksb-jpg/meetingmind-frontend.git
 cd meetingmind-frontend
 npm install
 npm start
-```
 
-Die App öffnet sich unter `http://localhost:3000`.
-
----
-
-## Projektstruktur
-src/
-├── App.js          # Hauptkomponente mit allen Features
-├── App.css         # Komplettes Styling inkl. Dark Mode
-└── index.js        # React Entry Point
+Die App öffnet sich unter http://localhost:3000.
 
 ---
 
 ## Verbindung zum Backend
 
-Die App kommuniziert mit dem Spring Boot Backend über:
-
-POST   /api/meetings           — Meeting erstellen
-GET    /api/meetings           — Alle Meetings laden
-PUT    /api/meetings/{id}      — Meeting bearbeiten
-DELETE /api/meetings/{id}      — Meeting löschen
+POST   /api/meetings              — Meeting erstellen
+GET    /api/meetings              — Alle Meetings laden
+PUT    /api/meetings/{id}         — Meeting bearbeiten
+DELETE /api/meetings/{id}         — Meeting löschen
 POST   /api/meetings/{id}/analyze — KI-Analyse starten
 
 ---
 
 ## Related
 
-- [MeetingMind Backend](https://github.com/suaybboncuksb-jpg/meetingmind) — Spring Boot + PostgreSQL + Gemini AI
+- MeetingMind Backend: https://github.com/suaybboncuksb-jpg/meetingmind
 
 ---
 
-*Portfolio Projekt · Wirtschaftsinformatik · IT/KI-Beratung*
+Portfolio Projekt · Wirtschaftsinformatik · IT/KI-Beratung
