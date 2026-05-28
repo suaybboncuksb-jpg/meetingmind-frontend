@@ -3,6 +3,7 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import './App.css';
+import logo from './logo.svg';
 
 const API = 'http://localhost:8080/api/meetings';
 
@@ -52,6 +53,12 @@ const TRANSLATIONS = {
     monthView: 'Monat', yearView: 'Jahr',
     meetingsOnDay: 'Meetings am', noMeetingsOnDay: 'Keine Meetings an diesem Tag.',
     selectDay: 'Tag auswählen um Meetings zu sehen',
+    dashboardSub: 'Übersicht aller Meeting-Aktivitäten',
+    noLocation: 'Kein Ort', noProtocol: 'Kein Protokolltext vorhanden.',
+    done: 'erledigt', of: 'von', tasksAll: 'Aufgaben erledigt',
+    noMeetingsEmpty: 'Keine Meetings vorhanden',
+    noMeetingsCreate: 'Erstelle dein erstes Meeting mit dem + Button.',
+    statusOffen: 'OFFEN', statusInBearbeitung: 'IN BEARBEITUNG', statusAbgeschlossen: 'ABGESCHLOSSEN',
   },
   en: {
     dashboard: 'Dashboard', meetings: 'Meetings', tasks: 'Tasks',
@@ -98,6 +105,12 @@ const TRANSLATIONS = {
     monthView: 'Month', yearView: 'Year',
     meetingsOnDay: 'Meetings on', noMeetingsOnDay: 'No meetings on this day.',
     selectDay: 'Select a day to see meetings',
+    dashboardSub: 'Overview of all meeting activities',
+    noLocation: 'No location', noProtocol: 'No protocol text available.',
+    done: 'done', of: 'of', tasksAll: 'tasks done',
+    noMeetingsEmpty: 'No meetings yet',
+    noMeetingsCreate: 'Create your first meeting with the + button.',
+    statusOffen: 'OPEN', statusInBearbeitung: 'IN PROGRESS', statusAbgeschlossen: 'DONE',
   }
 };
 
@@ -110,12 +123,17 @@ const NAV_ITEMS = [
   { id: 'settings', icon: 'M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z' },
 ];
 
-const STATUS_OPTIONS = ['OFFEN', 'IN_BEARBEITUNG', 'ABGESCHLOSSEN'];
+const getStatusOptions = (lang) => lang === 'de'
+  ? ['OFFEN', 'IN_BEARBEITUNG', 'ABGESCHLOSSEN']
+  : ['OPEN', 'IN_PROGRESS', 'DONE'];
+
+const normalizeParticipants = (participants) =>
+  (participants || []).map(p => typeof p === 'string' ? p : p?.name || '').filter(Boolean);
 
 const ONBOARDING_STEPS = (t) => [
-  { title: t.dashboard === 'Dashboard' ? 'Willkommen bei MeetingMind' : 'Welcome to MeetingMind', desc: t.dashboard === 'Dashboard' ? 'Das KI-gestützte Tool für professionelle Meeting-Protokolle. Erstelle, verwalte und analysiere deine Meetings mit Google Gemini AI.' : 'The AI-powered tool for professional meeting protocols. Create, manage and analyze your meetings with Google Gemini AI.', hint: t.dashboard === 'Dashboard' ? 'Schritt 1 von 3' : 'Step 1 of 3' },
-  { title: t.dashboard === 'Dashboard' ? 'Meetings erstellen & verwalten' : 'Create & manage meetings', desc: t.dashboard === 'Dashboard' ? 'Lege neue Meetings an, erfasse den Protokolltext und behalte den Überblick über alle vergangenen Besprechungen.' : 'Create new meetings, capture protocol text and keep track of all past discussions.', hint: t.dashboard === 'Dashboard' ? 'Schritt 2 von 3' : 'Step 2 of 3' },
-  { title: t.dashboard === 'Dashboard' ? 'KI-Analyse starten' : 'Start AI Analysis', desc: t.dashboard === 'Dashboard' ? 'Mit einem Klick analysiert Google Gemini dein Protokoll und erstellt automatisch eine Zusammenfassung sowie eine Liste erkannter Aufgaben.' : 'With one click, Google Gemini analyzes your protocol and automatically creates a summary and a list of detected tasks.', hint: t.dashboard === 'Dashboard' ? 'Schritt 3 von 3' : 'Step 3 of 3' },
+  { title: t.dashboard === 'Dashboard' ? 'Willkommen bei MeetingMind' : 'Welcome to MeetingMind', desc: t.dashboard === 'Dashboard' ? 'Das KI-gestützte Tool für professionelle Meeting-Protokolle.' : 'The AI-powered tool for professional meeting protocols.', hint: t.dashboard === 'Dashboard' ? 'Schritt 1 von 3' : 'Step 1 of 3' },
+  { title: t.dashboard === 'Dashboard' ? 'Meetings erstellen & verwalten' : 'Create & manage meetings', desc: t.dashboard === 'Dashboard' ? 'Lege neue Meetings an und behalte den Überblick.' : 'Create new meetings and keep track of all discussions.', hint: t.dashboard === 'Dashboard' ? 'Schritt 2 von 3' : 'Step 2 of 3' },
+  { title: t.dashboard === 'Dashboard' ? 'KI-Analyse starten' : 'Start AI Analysis', desc: t.dashboard === 'Dashboard' ? 'Google Gemini analysiert dein Protokoll automatisch.' : 'Google Gemini analyzes your protocol automatically.', hint: t.dashboard === 'Dashboard' ? 'Schritt 3 von 3' : 'Step 3 of 3' },
 ];
 
 function Icon({ path, size = 18, color = 'currentColor' }) {
@@ -138,14 +156,14 @@ function StatusBadge({ meeting, t }) {
   return <span className="badge badge-draft">{t.draft}</span>;
 }
 
-function groupMeetingsByDate(meetings, t) {
+function groupMeetingsByDate(meetings, t, lang) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const weekAgo = new Date(today);
   weekAgo.setDate(today.getDate() - 7);
-  const todayLabel = t.dashboard === 'Dashboard' ? 'Heute' : 'Today';
-  const weekLabel = t.dashboard === 'Dashboard' ? 'Diese Woche' : 'This Week';
-  const olderLabel = t.dashboard === 'Dashboard' ? 'Älter' : 'Older';
+  const todayLabel = lang === 'de' ? 'Heute' : 'Today';
+  const weekLabel = lang === 'de' ? 'Diese Woche' : 'This Week';
+  const olderLabel = lang === 'de' ? 'Älter' : 'Older';
   const groups = { [todayLabel]: [], [weekLabel]: [], [olderLabel]: [] };
   meetings.forEach(m => {
     const d = new Date(m.meetingDate);
@@ -290,15 +308,14 @@ function ShortcutsModal({ onClose, t }) {
   );
 }
 
-function Sidebar({ activeNav, setActiveNav, onNewMeeting, darkMode, setDarkMode, sidebarOpen, setSidebarOpen, t, lang, setLang }) {
+function Sidebar({ activeNav, setActiveNav, darkMode, setDarkMode, sidebarOpen, setSidebarOpen, t, lang, setLang }) {
   return (
     <>
       {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
       <div className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-logo">
-          <div className="logo-mark">M</div>
-          <span className="logo-name">MeetingMind</span>
-        </div>
+  		<img src={logo} alt="MeetingMind" style={{ height: 28, objectFit: 'contain', 			filter: 'brightness(0) invert(1)' }} />
+	</div>
         <nav className="sidebar-nav">
           {NAV_ITEMS.map(item => (
             <button key={item.id} className={`nav-item ${activeNav === item.id ? 'active' : ''}`}
@@ -310,8 +327,10 @@ function Sidebar({ activeNav, setActiveNav, onNewMeeting, darkMode, setDarkMode,
         </nav>
         <div className="sidebar-bottom">
           <button className="dark-toggle" onClick={() => setLang(l => l === 'de' ? 'en' : 'de')}>
-            <span style={{ fontSize: 16 }}>{lang === 'de' ? '🇩🇪' : '🇬🇧'}</span>
-            <span className="nav-label">{lang === 'de' ? 'English' : 'Deutsch'}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)', minWidth: 16 }}>
+              {lang === 'de' ? 'DE' : 'EN'}
+            </span>
+            <span className="nav-label">{lang === 'de' ? 'Deutsch' : 'English'}</span>
           </button>
           <button className="dark-toggle" onClick={() => setDarkMode(d => !d)}>
             <span className="dark-toggle-icon">{darkMode ? '○' : '●'}</span>
@@ -330,7 +349,7 @@ function Sidebar({ activeNav, setActiveNav, onNewMeeting, darkMode, setDarkMode,
   );
 }
 
-function WeeklyChart({ meetings, t }) {
+function WeeklyChart({ meetings, t, lang }) {
   const weeks = {};
   meetings.forEach(m => {
     const d = new Date(m.meetingDate);
@@ -341,7 +360,7 @@ function WeeklyChart({ meetings, t }) {
   });
   const entries = Object.entries(weeks).slice(-6);
   const max = Math.max(...entries.map(([, v]) => v), 1);
-  if (entries.length === 0) return <div className="chart-empty"><p>{t.dashboard === 'Dashboard' ? 'Noch keine Daten für das Diagramm.' : 'No data for the chart yet.'}</p></div>;
+  if (entries.length === 0) return <div className="chart-empty"><p>{lang === 'de' ? 'Noch keine Daten für das Diagramm.' : 'No data for the chart yet.'}</p></div>;
   return (
     <div className="weekly-chart">
       <div className="chart-bars">
@@ -357,15 +376,19 @@ function WeeklyChart({ meetings, t }) {
   );
 }
 
-function Dashboard({ meetings, t }) {
+function Dashboard({ meetings, t, lang }) {
   const analyzed = meetings.filter(m => m.aiSummary).length;
   const open = meetings.filter(m => m.protocolText && !m.aiSummary).length;
   const totalTasks = meetings.reduce((sum, m) => sum + (m.tasks?.length || 0), 0);
   const doneTasks = meetings.reduce((sum, m) => sum + (m.tasks?.filter(t2 => t2.done)?.length || 0), 0);
+  const locale = lang === 'de' ? 'de-DE' : 'en-US';
   return (
     <div className="detail-panel fade-in">
       <div className="detail-header">
-        <div><h2>{t.dashboard}</h2><p className="detail-sub">{t.dashboard === 'Dashboard' ? 'Übersicht aller Meeting-Aktivitäten' : 'Overview of all meeting activities'}</p></div>
+        <div>
+          <h2>{t.dashboard}</h2>
+          <p className="detail-sub">{t.dashboardSub}</p>
+        </div>
       </div>
       <div className="detail-body">
         <div className="stats-grid">
@@ -376,21 +399,21 @@ function Dashboard({ meetings, t }) {
         </div>
         <div className="detail-section">
           <h3 className="section-title">{t.meetingsPerWeek}</h3>
-          <div className="chart-card"><WeeklyChart meetings={meetings} t={t} /></div>
+          <div className="chart-card"><WeeklyChart meetings={meetings} t={t} lang={lang} /></div>
         </div>
         <div className="detail-section">
           <h3 className="section-title">{t.recentMeetings}</h3>
           {meetings.length === 0 ? (
             <div className="empty-state-inline">
               <div className="empty-icon-box" style={{ margin: '0 auto 12px' }}>📅</div>
-              <h3>{t.dashboard === 'Dashboard' ? 'Keine Meetings vorhanden' : 'No meetings yet'}</h3>
-              <p>{t.dashboard === 'Dashboard' ? 'Erstelle dein erstes Meeting mit dem + Button.' : 'Create your first meeting with the + button.'}</p>
+              <h3>{t.noMeetingsEmpty}</h3>
+              <p>{t.noMeetingsCreate}</p>
             </div>
           ) : meetings.slice(0, 5).map(m => (
             <div key={m.id} className="dashboard-meeting-row">
               <div className="dmr-left">
                 <span className="dmr-title">{m.title}</span>
-                <span className="dmr-meta">{m.location} · {new Date(m.meetingDate).toLocaleDateString(t.dashboard === 'Dashboard' ? 'de-DE' : 'en-US')}</span>
+                <span className="dmr-meta">{m.location} · {new Date(m.meetingDate).toLocaleDateString(locale)}</span>
               </div>
               <StatusBadge meeting={m} t={t} />
             </div>
@@ -401,7 +424,7 @@ function Dashboard({ meetings, t }) {
   );
 }
 
-function TasksOverview({ meetings, onTaskToggle, t }) {
+function TasksOverview({ meetings, onTaskToggle, t, lang }) {
   const [taskFilter, setTaskFilter] = useState('all');
   const allTasks = meetings.flatMap(m => (m.tasks || []).map((task, i) => ({ ...task, meetingTitle: m.title, meetingId: m.id, taskIndex: i })));
   const filtered = allTasks.filter(task => { if (taskFilter === 'open') return !task.done; if (taskFilter === 'done') return task.done; return true; });
@@ -409,7 +432,7 @@ function TasksOverview({ meetings, onTaskToggle, t }) {
   return (
     <div className="detail-panel fade-in">
       <div className="detail-header">
-        <div><h2>{t.tasksOverview}</h2><p className="detail-sub">{doneCount} {t.dashboard === 'Dashboard' ? 'von' : 'of'} {allTasks.length} {t.dashboard === 'Dashboard' ? 'Aufgaben erledigt' : 'tasks done'}</p></div>
+        <div><h2>{t.tasksOverview}</h2><p className="detail-sub">{doneCount} {t.of} {allTasks.length} {t.tasksAll}</p></div>
         <div className="detail-actions">
           {[['all', t.allTasks], ['open', t.openTasks], ['done', t.doneTasks]].map(([f, label]) => (
             <button key={f} className={`filter-chip ${taskFilter === f ? 'active' : ''}`} style={{ padding: '8px 14px' }} onClick={() => setTaskFilter(f)}>{label}</button>
@@ -420,7 +443,7 @@ function TasksOverview({ meetings, onTaskToggle, t }) {
         {filtered.length === 0 && (
           <div className="empty-state-inline">
             <div className="empty-icon-box" style={{ margin: '0 auto 12px', fontSize: 24 }}>✓</div>
-            <h3>{taskFilter === 'done' ? (t.dashboard === 'Dashboard' ? 'Noch nichts erledigt' : 'Nothing done yet') : (t.dashboard === 'Dashboard' ? 'Keine offenen Aufgaben' : 'No open tasks')}</h3>
+            <h3>{taskFilter === 'done' ? (lang === 'de' ? 'Noch nichts erledigt' : 'Nothing done yet') : (lang === 'de' ? 'Keine offenen Aufgaben' : 'No open tasks')}</h3>
             <p>{t.noTasksYet}</p>
           </div>
         )}
@@ -463,7 +486,6 @@ function CalendarView({ meetings, t, onSelectMeeting, lang }) {
   });
 
   const getMeetingsForDay = (year, month, day) => meetingsByDate[`${year}-${month}-${day}`] || [];
-
   const navigateMonth = (dir) => { setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + dir, 1)); setSelectedDay(null); };
   const navigateYear = (dir) => { setCurrentDate(prev => new Date(prev.getFullYear() + dir, prev.getMonth(), 1)); setSelectedDay(null); };
 
@@ -600,10 +622,10 @@ function CalendarView({ meetings, t, onSelectMeeting, lang }) {
   );
 }
 
-function MeetingList({ meetings, selected, onSelect, search, setSearch, onNewMeeting, filter, setFilter, sort, setSort, t }) {
+function MeetingList({ meetings, selected, onSelect, search, setSearch, onNewMeeting, filter, setFilter, sort, setSort, t, lang }) {
   const [showFilters, setShowFilters] = useState(false);
   const filtered = applyFilterAndSort(meetings, search, filter, sort);
-  const groups = groupMeetingsByDate(filtered, t);
+  const groups = groupMeetingsByDate(filtered, t, lang);
   const activeFilters = filter !== 'all' || sort !== 'date-desc';
   const FILTER_OPTIONS = [{ value: 'all', label: t.allMeetings }, { value: 'analyzed', label: t.analyzed }, { value: 'open', label: t.open }, { value: 'draft', label: t.draft }];
   const SORT_OPTIONS = [{ value: 'date-desc', label: t.sortNewest }, { value: 'date-asc', label: t.sortOldest }, { value: 'title-asc', label: t.sortTitleAZ }, { value: 'title-desc', label: t.sortTitleZA }];
@@ -654,8 +676,8 @@ function MeetingList({ meetings, selected, onSelect, search, setSearch, onNewMee
                 <div key={m.id} className={`meeting-item slide-in ${selected?.id === m.id ? 'active' : ''}`} onClick={() => onSelect(m)}>
                   <div className="meeting-item-top"><span className="meeting-item-title">{m.title}</span><StatusBadge meeting={m} t={t} /></div>
                   <div className="meeting-item-meta">
-                    <span>{m.location || (t.dashboard === 'Dashboard' ? 'Kein Ort' : 'No location')}</span>
-                    <span>{new Date(m.meetingDate).toLocaleDateString(t.dashboard === 'Dashboard' ? 'de-DE' : 'en-US')}</span>
+                    <span>{m.location || t.noLocation}</span>
+                    <span>{new Date(m.meetingDate).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US')}</span>
                   </div>
                   {m.protocolText && <p className="meeting-item-preview">{m.protocolText.substring(0, 65)}...</p>}
                 </div>
@@ -730,7 +752,7 @@ function NewMeetingForm({ onSave, onCancel, t, lang }) {
 
 function EditMeetingForm({ meeting, onSave, onCancel, t, lang }) {
   const [form, setForm] = useState({ title: meeting.title || '', location: meeting.location || '', meetingDate: meeting.meetingDate ? meeting.meetingDate.substring(0, 16) : '', protocolText: meeting.protocolText || '' });
-  const [participants, setParticipants] = useState(meeting.participants || []);
+  const [participants, setParticipants] = useState(normalizeParticipants(meeting.participants));
   return (
     <div className="detail-panel fade-in">
       <div className="detail-header">
@@ -751,7 +773,10 @@ function EditMeetingForm({ meeting, onSave, onCancel, t, lang }) {
   );
 }
 
-function MeetingDetail({ meeting, onAnalyze, onDelete, onEdit, analyzing, onStatusChange, onTaskToggle, onCopySummary, t }) {
+function MeetingDetail({ meeting, onAnalyze, onDelete, onEdit, analyzing, onStatusChange, onTaskToggle, onCopySummary, t, lang }) {
+  const locale = lang === 'de' ? 'de-DE' : 'en-US';
+  const statusOptions = getStatusOptions(lang);
+
   if (!meeting) {
     return (
       <div className="detail-panel empty-detail fade-in">
@@ -759,16 +784,22 @@ function MeetingDetail({ meeting, onAnalyze, onDelete, onEdit, analyzing, onStat
       </div>
     );
   }
+
+  const participants = normalizeParticipants(meeting.participants);
+
   return (
     <div className="detail-panel fade-in">
       <div className="detail-header">
         <div>
           <h2>{meeting.title}</h2>
-          <p className="detail-sub">{meeting.location || (t.dashboard === 'Dashboard' ? 'Kein Ort' : 'No location')} &nbsp;·&nbsp; {new Date(meeting.meetingDate).toLocaleDateString(t.dashboard === 'Dashboard' ? 'de-DE' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          <p className="detail-sub">
+            {meeting.location || t.noLocation} &nbsp;·&nbsp;
+            {new Date(meeting.meetingDate).toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
         </div>
         <div className="detail-actions">
-          <select className="status-select" value={meeting.manualStatus || 'OFFEN'} onChange={e => onStatusChange(meeting.id, e.target.value)}>
-            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
+          <select className="status-select" value={meeting.manualStatus || statusOptions[0]} onChange={e => onStatusChange(meeting.id, e.target.value)}>
+            {statusOptions.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
           </select>
           <button className={`btn-analyze ${analyzing ? 'loading' : ''}`} onClick={() => onAnalyze(meeting.id)} disabled={analyzing}>
             {analyzing && <span className="spinner" />}{analyzing ? t.analyzing : t.analyze}
@@ -781,19 +812,19 @@ function MeetingDetail({ meeting, onAnalyze, onDelete, onEdit, analyzing, onStat
       <div className="detail-body" id="export-content">
         <div className="export-header">
           <h1 className="export-title">{meeting.title}</h1>
-          <p className="export-meta">{meeting.location || ''} · {new Date(meeting.meetingDate).toLocaleDateString(t.dashboard === 'Dashboard' ? 'de-DE' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          <p className="export-meta">{meeting.location || ''} · {new Date(meeting.meetingDate).toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         </div>
-        {meeting.participants && meeting.participants.length > 0 && (
+        {participants.length > 0 && (
           <div className="detail-section">
             <h3 className="section-title">{t.participants}</h3>
             <div className="participant-chips" style={{ marginTop: 0 }}>
-              {meeting.participants.map(p => <span key={p} className="participant-chip participant-chip-readonly">{p}</span>)}
+              {participants.map(p => <span key={p} className="participant-chip participant-chip-readonly">{p}</span>)}
             </div>
           </div>
         )}
         <div className="detail-section">
           <h3 className="section-title">{t.protocol}</h3>
-          <div className="protocol-box"><p>{meeting.protocolText || (t.dashboard === 'Dashboard' ? 'Kein Protokolltext vorhanden.' : 'No protocol text available.')}</p></div>
+          <div className="protocol-box"><p>{meeting.protocolText || t.noProtocol}</p></div>
         </div>
         {meeting.aiSummary && (
           <div className="detail-section">
@@ -809,7 +840,7 @@ function MeetingDetail({ meeting, onAnalyze, onDelete, onEdit, analyzing, onStat
         )}
         {meeting.tasks && meeting.tasks.length > 0 && (
           <div className="detail-section">
-            <h3 className="section-title">{t.detectedTasks} ({meeting.tasks.filter(task => task.done).length}/{meeting.tasks.length} {t.dashboard === 'Dashboard' ? 'erledigt' : 'done'})</h3>
+            <h3 className="section-title">{t.detectedTasks} ({meeting.tasks.filter(task => task.done).length}/{meeting.tasks.length} {t.done})</h3>
             <div className="task-list">
               {meeting.tasks.map((task, i) => (
                 <div key={i} className={`task-item ${task.done ? 'task-done' : ''}`} onClick={() => onTaskToggle(meeting.id, i)}>
@@ -827,7 +858,7 @@ function MeetingDetail({ meeting, onAnalyze, onDelete, onEdit, analyzing, onStat
             </div>
           </div>
         )}
-        <div className="export-footer"><p>MeetingMind · {new Date().toLocaleDateString(t.dashboard === 'Dashboard' ? 'de-DE' : 'en-US')}</p></div>
+        <div className="export-footer"><p>MeetingMind · {new Date().toLocaleDateString(locale)}</p></div>
       </div>
     </div>
   );
@@ -886,7 +917,11 @@ export default function App() {
     try {
       const res = await axios.get(API);
       const saved = JSON.parse(localStorage.getItem('mm_tasks') || '{}');
-      const enriched = res.data.map(m => ({ ...m, tasks: (m.tasks || []).map((task, i) => ({ ...task, done: saved[`${m.id}-${i}`] ?? false })) }));
+      const enriched = res.data.map(m => ({
+        ...m,
+        participants: normalizeParticipants(m.participants),
+        tasks: (m.tasks || []).map((task, i) => ({ ...task, done: saved[`${m.id}-${i}`] ?? false }))
+      }));
       setMeetings(enriched);
     } catch { showToast(t.connectionFailed, 'error'); }
   };
@@ -897,8 +932,11 @@ export default function App() {
   };
 
   const updateMeeting = async (id, form) => {
-    try { await axios.put(`${API}/${id}`, form); setEditingMeeting(null); loadMeetings(); showToast(t.meetingUpdated); setSelected(prev => prev ? { ...prev, ...form } : null); }
-    catch { showToast(t.saveFailed, 'error'); }
+    try {
+      await axios.put(`${API}/${id}`, form);
+      setEditingMeeting(null); loadMeetings(); showToast(t.meetingUpdated);
+      setSelected(prev => prev ? { ...prev, ...form, participants: normalizeParticipants(form.participants) } : null);
+    } catch { showToast(t.saveFailed, 'error'); }
   };
 
   const analyzeMeeting = async (id) => {
@@ -907,7 +945,8 @@ export default function App() {
       const res = await axios.post(`${API}/${id}/analyze`);
       const updatedMeeting = res.data;
       const tasks = (updatedMeeting.tasks || []).map((task, i) => ({ ...task, done: taskStates[`${id}-${i}`] ?? false }));
-      setSelected({ ...updatedMeeting, tasks }); loadMeetings(); showToast(t.analysisSuccess);
+      setSelected({ ...updatedMeeting, participants: normalizeParticipants(updatedMeeting.participants), tasks });
+      loadMeetings(); showToast(t.analysisSuccess);
     } catch { showToast(t.analysisFailed, 'error'); }
     setAnalyzing(false);
   };
@@ -917,7 +956,10 @@ export default function App() {
     await axios.delete(`${API}/${id}`); setSelected(null); loadMeetings(); showToast(t.meetingDeleted, 'info');
   };
 
-  const handleStatusChange = (id, status) => { setMeetingStatuses(prev => ({ ...prev, [id]: status })); showToast(`${t.statusSet} "${status.replace('_', ' ')}" ${t.statusSet2}`); };
+  const handleStatusChange = (id, status) => {
+    setMeetingStatuses(prev => ({ ...prev, [id]: status }));
+    showToast(`${t.statusSet} "${status.replace('_', ' ')}" ${t.statusSet2}`);
+  };
 
   const handleTaskToggle = (meetingId, taskIndex) => {
     const key = `${meetingId}-${taskIndex}`;
@@ -928,15 +970,15 @@ export default function App() {
 
   const handleCopySummary = (text) => { navigator.clipboard.writeText(text).then(() => showToast(t.copied)); };
 
-  const enrichedSelected = selected ? { ...selected, manualStatus: meetingStatuses[selected.id] || 'OFFEN' } : null;
+  const enrichedSelected = selected ? { ...selected, manualStatus: meetingStatuses[selected.id] || getStatusOptions(lang)[0] } : null;
 
   const renderMain = () => {
     if (showForm) return <NewMeetingForm key="form" onSave={createMeeting} onCancel={() => setShowForm(false)} t={t} lang={lang} />;
     if (editingMeeting) return <EditMeetingForm key={`edit-${editingMeeting.id}`} meeting={editingMeeting} onSave={updateMeeting} onCancel={() => setEditingMeeting(null)} t={t} lang={lang} />;
-    if (activeNav === 'dashboard') return <Dashboard key="dashboard" meetings={meetings} t={t} />;
-    if (activeNav === 'tasks') return <TasksOverview key="tasks" meetings={meetings} onTaskToggle={handleTaskToggle} t={t} />;
+    if (activeNav === 'dashboard') return <Dashboard key="dashboard" meetings={meetings} t={t} lang={lang} />;
+    if (activeNav === 'tasks') return <TasksOverview key="tasks" meetings={meetings} onTaskToggle={handleTaskToggle} t={t} lang={lang} />;
     if (activeNav === 'calendar') return <CalendarView key="calendar" meetings={meetings} t={t} lang={lang} onSelectMeeting={(m) => { const tasks = (m.tasks || []).map((task, i) => ({ ...task, done: taskStates[`${m.id}-${i}`] ?? task.done ?? false })); setSelected({ ...m, tasks }); setActiveNav('meetings'); }} />;
-    return <MeetingDetail key={selected?.id || 'empty'} meeting={enrichedSelected} onAnalyze={analyzeMeeting} onDelete={deleteMeeting} onEdit={(m) => setEditingMeeting(m)} analyzing={analyzing} onStatusChange={handleStatusChange} onTaskToggle={handleTaskToggle} onCopySummary={handleCopySummary} t={t} />;
+    return <MeetingDetail key={selected?.id || 'empty'} meeting={enrichedSelected} onAnalyze={analyzeMeeting} onDelete={deleteMeeting} onEdit={(m) => setEditingMeeting(m)} analyzing={analyzing} onStatusChange={handleStatusChange} onTaskToggle={handleTaskToggle} onCopySummary={handleCopySummary} t={t} lang={lang} />;
   };
 
   if (showSplash) {
@@ -953,7 +995,7 @@ export default function App() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
         </button>
         <Sidebar activeNav={activeNav} setActiveNav={(nav) => { setActiveNav(nav); setShowForm(false); setEditingMeeting(null); setSelected(null); }} onNewMeeting={handleNewMeeting} darkMode={darkMode} setDarkMode={setDarkMode} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} t={t} lang={lang} setLang={setLang} />
-        <MeetingList meetings={meetings} selected={selected} onSelect={(m) => { const tasks = (m.tasks || []).map((task, i) => ({ ...task, done: taskStates[`${m.id}-${i}`] ?? task.done ?? false })); setSelected({ ...m, tasks }); setShowForm(false); setEditingMeeting(null); setActiveNav('meetings'); }} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} onNewMeeting={handleNewMeeting} t={t} />
+        <MeetingList meetings={meetings} selected={selected} onSelect={(m) => { const tasks = (m.tasks || []).map((task, i) => ({ ...task, done: taskStates[`${m.id}-${i}`] ?? task.done ?? false })); setSelected({ ...m, tasks }); setShowForm(false); setEditingMeeting(null); setActiveNav('meetings'); }} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} onNewMeeting={handleNewMeeting} t={t} lang={lang} />
         {renderMain()}
         <button className="shortcuts-hint" onClick={() => setShowShortcuts(true)} title="?">?</button>
       </div>
