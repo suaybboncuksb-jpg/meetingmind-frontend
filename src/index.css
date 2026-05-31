@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #F5F7FA;
+  }
+  * { scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }
+  *::-webkit-scrollbar { width: 4px; height: 4px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+}
+
+@layer components {
+  .sidebar-gradient {
+    background: linear-gradient(180deg, #0D2137 0%, #0a1c2e 100%);
+  }
+  .btn-ai-gradient {
+    background: linear-gradient(135deg, #1E6FB5 0%, #7C3AED 100%);
+  }
+  .nav-active {
+    background: rgba(30, 111, 181, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .nav-active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 18px;
+    background: linear-gradient(180deg, #1E6FB5, #7C3AED);
+    border-radius: 0 3px 3px 0;
+  }
+  .custom-checkbox {
+    appearance: none; -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border: 2px solid #CBD5E1; border-radius: 5px;
+    cursor: pointer; transition: all 0.15s ease;
+    flex-shrink: 0; position: relative;
+  }
+  .custom-checkbox:checked { background: #059669; border-color: #059669; }
+  .custom-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px; top: 1px;
+    width: 5px; height: 9px;
+    border: 2px solid white;
+    border-top: none; border-left: none;
+    transform: rotate(45deg);
+  }
+  .custom-checkbox:hover:not(:checked) { border-color: #1E6FB5; }
+  .task-checkbox { width: 20px; height: 20px; border-radius: 6px; }
+}
