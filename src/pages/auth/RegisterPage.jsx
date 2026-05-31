@@ -1,14 +1,18 @@
 import { useState } from 'react';
-import { Lock, Mail, Sparkles, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Sparkles, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
+import AuthShell, { AuthBrand } from '../../components/AuthShell.jsx';
 
 export default function RegisterPage({ onShowLogin }) {
     const { register } = useAuth();
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+
     const [password, setPassword] = useState('');
     const [passwordRepeat, setPasswordRepeat] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showPasswordRepeat, setShowPasswordRepeat] = useState(false);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -50,128 +54,113 @@ export default function RegisterPage({ onShowLogin }) {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-6">
-            <div className="w-full max-w-[420px] bg-white border border-[#E5EAF0] rounded-3xl shadow-[0_20px_60px_rgba(13,33,55,0.10)] p-8">
-                <div className="flex items-center gap-3 mb-8">
-                    <img
-                        src="/meetingmind-logo.png"
-                        alt="MeetingMind"
-                        className="w-12 h-12 rounded-2xl object-cover"
-                    />
+        <AuthShell>
+            <AuthBrand />
 
-                    <div>
-                        <h1 className="text-[22px] font-bold text-[#111827] tracking-tight">
-                            MeetingMind
-                        </h1>
-                        <p className="text-[13px] text-[#64748B]">
-                            AI Meeting Workspace
-                        </p>
-                    </div>
-                </div>
+            <div className="mb-8">
+                <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#1E6FB5]">
+                    Neuer Account
+                </p>
 
-                <div className="mb-6">
-                    <p className="text-[10.5px] font-bold text-[#1E6FB5] uppercase tracking-[0.12em] mb-1">
-                        Neuer Account
-                    </p>
-                    <h2 className="text-[20px] font-bold text-[#111827]">
-                        Registrieren
-                    </h2>
-                    <p className="text-[13px] text-[#64748B] mt-1">
-                        Erstelle deinen eigenen MeetingMind Workspace.
-                    </p>
-                </div>
+                <h2 className="mb-3 text-[36px] font-bold tracking-[-0.045em] text-[#111827]">
+                    Registrieren
+                </h2>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <AuthField
-                        icon={User}
-                        label="Name"
-                        type="text"
-                        value={name}
-                        onChange={setName}
-                        placeholder="Dein Name"
-                        autoComplete="name"
-                    />
-
-                    <AuthField
-                        icon={Mail}
-                        label="E-Mail"
-                        type="email"
-                        value={email}
-                        onChange={setEmail}
-                        placeholder="name@unternehmen.de"
-                        autoComplete="email"
-                    />
-
-                    <AuthField
-                        icon={Lock}
-                        label="Passwort"
-                        type="password"
-                        value={password}
-                        onChange={setPassword}
-                        placeholder="Mindestens 6 Zeichen"
-                        autoComplete="new-password"
-                    />
-
-                    <AuthField
-                        icon={Lock}
-                        label="Passwort wiederholen"
-                        type="password"
-                        value={passwordRepeat}
-                        onChange={setPasswordRepeat}
-                        placeholder="Passwort erneut eingeben"
-                        autoComplete="new-password"
-                    />
-
-                    {error && (
-                        <p className="text-[12.5px] text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-                            {error}
-                        </p>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white disabled:opacity-60 hover:-translate-y-px transition-all duration-150"
-                        style={{ background: 'linear-gradient(135deg, #1E6FB5, #2B7EC7)' }}
-                    >
-                        <Sparkles size={14} />
-                        {loading ? 'Registriere …' : 'Account erstellen'}
-                    </button>
-                </form>
-
-                <div className="mt-6 text-center">
-                    <button
-                        type="button"
-                        onClick={onShowLogin}
-                        className="text-[12.5px] font-medium text-[#1E6FB5] hover:text-[#2B7EC7]"
-                    >
-                        Bereits registriert? Einloggen
-                    </button>
-                </div>
+                <p className="max-w-[390px] text-[16px] leading-[1.75] text-[#64748B]">
+                    Erstelle deinen eigenen MeetingMind Workspace.
+                </p>
             </div>
-        </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <GlassInput
+                    icon={User}
+                    label="Name"
+                    type="text"
+                    value={name}
+                    onChange={setName}
+                    placeholder="Dein Name"
+                    autoComplete="name"
+                />
+
+                <GlassInput
+                    icon={Mail}
+                    label="E-Mail"
+                    type="email"
+                    value={email}
+                    onChange={setEmail}
+                    placeholder="name@unternehmen.de"
+                    autoComplete="email"
+                />
+
+                <PasswordInput
+                    label="Passwort"
+                    value={password}
+                    onChange={setPassword}
+                    showPassword={showPassword}
+                    setShowPassword={setShowPassword}
+                    placeholder="Mindestens 6 Zeichen"
+                    autoComplete="new-password"
+                />
+
+                <PasswordInput
+                    label="Passwort wiederholen"
+                    value={passwordRepeat}
+                    onChange={setPasswordRepeat}
+                    showPassword={showPasswordRepeat}
+                    setShowPassword={setShowPasswordRepeat}
+                    placeholder="Passwort erneut eingeben"
+                    autoComplete="new-password"
+                />
+
+                {error && (
+                    <p className="rounded-2xl border border-red-200 bg-red-50/85 px-4 py-3 text-[13px] text-red-600 shadow-sm">
+                        {error}
+                    </p>
+                )}
+
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="auth-primary-button"
+                >
+                    <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/45" />
+                    <Sparkles size={17} />
+                    {loading ? 'Registriere …' : 'Account erstellen'}
+                </button>
+            </form>
+
+            <div className="mt-8 text-center">
+                <button
+                    type="button"
+                    onClick={onShowLogin}
+                    className="text-[14px] font-semibold text-[#1E6FB5] transition-colors hover:text-[#0D2137]"
+                >
+                    Bereits registriert? Einloggen
+                </button>
+            </div>
+        </AuthShell>
     );
 }
 
-function AuthField({
-                       icon: Icon,
-                       label,
-                       type,
-                       value,
-                       onChange,
-                       placeholder,
-                       autoComplete,
-                   }) {
+function GlassInput({
+                        icon: Icon,
+                        label,
+                        type,
+                        value,
+                        onChange,
+                        placeholder,
+                        autoComplete,
+                    }) {
     return (
         <label className="block">
-      <span className="block text-[11.5px] font-semibold text-[#64748B] mb-1.5">
+      <span className="mb-2.5 block text-[13.5px] font-semibold text-[#111827]">
         {label}
       </span>
 
             <div className="relative">
                 <Icon
-                    size={14}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94A3B8]"
                 />
 
                 <input
@@ -180,9 +169,52 @@ function AuthField({
                     onChange={(event) => onChange(event.target.value)}
                     placeholder={placeholder}
                     autoComplete={autoComplete}
-                    className="w-full pl-9 pr-3 py-2.5 border border-[#E5EAF0] bg-[#F8FAFC] rounded-xl text-[13px] text-[#111827] placeholder:text-[#94A3B8] outline-none focus:border-[#1E6FB5]/40 focus:bg-white focus:shadow-[0_0_0_3px_rgba(30,111,181,0.06)] transition-all"
+                    className="auth-glass-input pl-12 pr-4"
                 />
             </div>
         </label>
+    );
+}
+
+function PasswordInput({
+                           label,
+                           value,
+                           onChange,
+                           showPassword,
+                           setShowPassword,
+                           placeholder,
+                           autoComplete,
+                       }) {
+    return (
+        <div>
+            <label className="mb-2.5 block text-[13.5px] font-semibold text-[#111827]">
+                {label}
+            </label>
+
+            <div className="relative">
+                <Lock
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+                />
+
+                <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={value}
+                    onChange={(event) => onChange(event.target.value)}
+                    placeholder={placeholder}
+                    autoComplete={autoComplete}
+                    className="auth-glass-input pl-12 pr-12"
+                />
+
+                <button
+                    type="button"
+                    onClick={() => setShowPassword((current) => !current)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] transition-colors hover:text-[#1E6FB5]"
+                    aria-label={showPassword ? 'Passwort ausblenden' : 'Passwort anzeigen'}
+                >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+            </div>
+        </div>
     );
 }

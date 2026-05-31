@@ -58,3 +58,167 @@
   .custom-checkbox:hover:not(:checked) { border-color: #1E6FB5; }
   .task-checkbox { width: 20px; height: 20px; border-radius: 6px; }
 }
+.auth-glass-input {
+  height: 58px;
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(221, 230, 240, 0.9);
+  background: rgba(255, 255, 255, 0.58);
+  font-size: 15.5px;
+  color: #111827;
+  outline: none;
+  box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.75),
+          0 1px 2px rgba(13, 33, 55, 0.04);
+  backdrop-filter: blur(18px);
+  transition: all 200ms ease;
+}
+
+.auth-glass-input::placeholder {
+  color: #94a3b8;
+}
+
+.auth-glass-input:focus {
+  border-color: rgba(30, 111, 181, 0.45);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow:
+          0 0 0 5px rgba(30, 111, 181, 0.08),
+          inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.auth-primary-button {
+  position: relative;
+  margin-top: 12px;
+  display: flex;
+  height: 58px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #2b7ec7 0%, #1e6fb5 100%);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 18px 38px rgba(30, 111, 181, 0.34);
+  transition: all 200ms ease;
+}
+
+.auth-primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 48px rgba(30, 111, 181, 0.42);
+}
+
+.auth-primary-button:disabled {
+  opacity: 0.6;
+  transform: none;
+}
+
+.auth-ocean-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(95px);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.auth-ocean-orb-1 {
+  left: -180px;
+  top: -130px;
+  width: 680px;
+  height: 560px;
+  background: rgba(220, 235, 250, 0.58);
+  animation: oceanFloatOne 18s ease-in-out infinite alternate;
+}
+
+.auth-ocean-orb-2 {
+  right: -220px;
+  top: 80px;
+  width: 760px;
+  height: 620px;
+  background: rgba(215, 230, 248, 0.72);
+  animation: oceanFloatTwo 22s ease-in-out infinite alternate;
+}
+
+.auth-ocean-orb-3 {
+  bottom: -220px;
+  left: 12%;
+  width: 720px;
+  height: 520px;
+  background: rgba(255, 255, 255, 0.82);
+  animation: oceanFloatThree 20s ease-in-out infinite alternate;
+}
+
+.auth-ocean-wave {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 48%;
+  filter: blur(28px);
+  will-change: transform;
+}
+
+.auth-ocean-wave-1 {
+  right: -140px;
+  top: 130px;
+  width: 680px;
+  height: 520px;
+  transform: rotate(18deg);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(221, 235, 250, 0.45));
+  animation: oceanWaveOne 24s ease-in-out infinite alternate;
+}
+
+.auth-ocean-wave-2 {
+  left: -160px;
+  bottom: -120px;
+  width: 660px;
+  height: 360px;
+  transform: rotate(-10deg);
+  background: linear-gradient(45deg, rgba(230, 240, 251, 0.7), rgba(255, 255, 255, 0.3));
+  animation: oceanWaveTwo 26s ease-in-out infinite alternate;
+}
+
+@keyframes oceanFloatOne {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(55px, 35px, 0) scale(1.08);
+  }
+}
+
+@keyframes oceanFloatTwo {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-65px, 45px, 0) scale(1.05);
+  }
+}
+
+@keyframes oceanFloatThree {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(40px, -35px, 0) scale(1.06);
+  }
+}
+
+@keyframes oceanWaveOne {
+  from {
+    transform: translate3d(0, 0, 0) rotate(18deg) scale(1);
+  }
+  to {
+    transform: translate3d(-45px, 25px, 0) rotate(14deg) scale(1.06);
+  }
+}
+
+@keyframes oceanWaveTwo {
+  from {
+    transform: translate3d(0, 0, 0) rotate(-10deg) scale(1);
+  }
+  to {
+    transform: translate3d(50px, -20px, 0) rotate(-7deg) scale(1.05);
+  }
+}
